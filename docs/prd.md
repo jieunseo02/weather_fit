@@ -79,3 +79,23 @@
   - [ ] **Phase 2**: EDA, 시계열 분해(STL) 및 Track 1 리포트 작성
   - [ ] **Phase 3**: Feature Engineering 및 Track 2 분류 모델링 (LightGBM 등)
   - [ ] **Phase 4**: Streamlit 대시보드 구축 및 최종 PR 병합
+
+  ---
+
+## 8. 프로젝트 디렉터리 구조 (Directory Structure)
+
+```text
+weather_fit/
+├── .env                          # API 인증키 및 환경변수 (로컬 보관, Git 제외)
+├── .gitignore                    # Git 관리 제외 파일 목록
+├── README.md                     # 프로젝트 개요 및 실행 가이드
+├── docs/                         # 기획 문서
+│   └── PRD.md                    # 제품 요구사항 정의서 (본 문서)
+├── data/                         # 데이터 저장소 (Git 제외)
+│   ├── 01_raw/                   # 기상청 및 쇼핑 API 원천 데이터
+│   ├── 02_intermediate/          # 일별 정제 완료 데이터 (Parquet)
+│   └── 03_mart/                  # 최종 분석 및 모델 학습용 마트
+└── src/                          # 파이썬 소스 코드
+    ├── data/                     # 데이터 수집 스크립트 (fetch_kma.py 등)
+    ├── features/                 # Feature Engineering 및 마트 빌드
+    └── model/                    # 추천 분류 모델 (LightGBM 등)
