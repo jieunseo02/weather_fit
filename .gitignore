@@ -1,0 +1,26 @@
+# 시크릿 — 절대 커밋 금지
+configs/secrets.yaml
+
+# 데이터
+# raw/ 는 저장소에 포함한다 — 전체 3MB 남짓이고, 멘티가 API 키 발급·백필 없이
+#   clone 만으로 EDA를 시작할 수 있다. 재수집하려면 키와 수 시간이 필요하다.
+# processed/ 는 raw 에서 언제든 재생성 가능하므로 제외 (transform 실습 대상이기도 하다).
+data/processed/
+!data/processed/.gitkeep
+
+# 로그
+logs/
+*.log
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+.pytest_cache/
+
+# OS / IDE
+.DS_Store
+.idea/
+.vscode/
