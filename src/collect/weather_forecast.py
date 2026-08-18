@@ -277,7 +277,7 @@ def fetch(kind: str, tmfc1: str, tmfc2: str, key: str, reg: str | None = None) -
     out["target_date"] = tmef.dt.normalize()       # ★ 예보 대상일
     out["mod"] = df.get("MOD", pd.NA)
 
-    # CLAUDE.md §5 weather_forecast_daily 컬럼. 없는 항목은 NA (temp/land 가 서로 보완)
+    # docs/datasets.md §7 weather_forecast_daily 컬럼. 없는 항목은 NA (temp/land 가 서로 보완)
     out["t_max"] = _num(df["MAX"]) if "MAX" in df else pd.NA
     out["t_min"] = _num(df["MIN"]) if "MIN" in df else pd.NA
     out["rn_st"] = _num(df["RN_ST"]) if "RN_ST" in df else pd.NA

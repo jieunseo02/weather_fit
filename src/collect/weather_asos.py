@@ -105,7 +105,7 @@ ASOS_COLUMNS: list[str] = [
     "TE_50",         # 5.0m 지중온도 (℃)
 ]
 
-# CLAUDE.md §5 weather_daily 로 올려보낼 컬럼 매핑 (단순 이름 변경일 뿐 정규화가 아니다)
+# docs/datasets.md §7 weather_daily 로 올려보낼 컬럼 매핑 (단순 이름 변경일 뿐 정규화가 아니다)
 #
 # ★ precip_mm(RN_DAY) 해석 주의 — transform 단계에서 반드시 처리할 것 ★
 #   ASOS 는 **무강수일의 RN_DAY 를 -9.0(결측)으로 표기**한다. 실측 3년치에서
@@ -306,7 +306,7 @@ def fetch_month(tm1: str, tm2: str, stn: str, key: str) -> pd.DataFrame:
     if df.empty:
         return df
 
-    # CLAUDE.md §5 weather_daily 컬럼을 앞쪽에 붙인다. 이름 변경 + 숫자 캐스팅뿐이고
+    # docs/datasets.md §7 weather_daily 컬럼을 앞쪽에 붙인다. 이름 변경 + 숫자 캐스팅뿐이고
     # 조인·정규화는 하지 않는다 (raw 규약).
     out = pd.DataFrame(index=df.index)
     out["date"] = _tm_to_date(df["TM"])
@@ -360,7 +360,7 @@ def fetch_daily_fallback(tm1: str, tm2: str, stn: str, key: str) -> pd.DataFrame
 
 
 def _to_schema(df: pd.DataFrame) -> pd.DataFrame:
-    """원본 프레임 앞에 CLAUDE.md §5 weather_daily 컬럼을 붙인다."""
+    """원본 프레임 앞에 docs/datasets.md §7 weather_daily 컬럼을 붙인다."""
     out = pd.DataFrame(index=df.index)
     out["date"] = _tm_to_date(df["TM"])
     out["region"] = "서울"

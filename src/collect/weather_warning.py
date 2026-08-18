@@ -56,7 +56,7 @@ DATA_ENDPOINT = f"{KMA_BASE}/wrn_met_data.php"
 #     202301231000,202301232100,202301230925,109,L1100100,C,3,1,00,4,101,,,…
 #
 #   ★ TM_ED(해제시각) 컬럼은 **존재하지 않는다.** ★
-#   docs/datasets.md 와 CLAUDE.md §5 의 `tm_ed` 는 사실과 다르다. 특보 해제는 별도
+#   docs/datasets.md §7 의 `tm_ed` 는 사실과 다르다. 특보 해제는 별도
 #   컬럼이 아니라 **CMD=3(해제) 인 별개의 행**으로 표현된다. 따라서 "특보 발효 구간"은
 #   발표행(CMD=1/5/6)과 해제행(CMD=3)을 짝지어 transform 단계에서 만들어야 한다.
 WRN_COLUMNS: list[str] = [
@@ -308,7 +308,7 @@ def fetch_year(tmfc1: str, tmfc2: str, reg: str, key: str) -> pd.DataFrame:
             f"TM_FC 파싱 실패 — 컬럼 순서가 코드의 가정과 다릅니다. "
             f"응답 첫 줄: {kma_rows(text)[0][:200]!r} / 사용한 컬럼: {list(df.columns)}")
 
-    # CLAUDE.md §5 weather_warning 컬럼
+    # docs/datasets.md §7 weather_warning 컬럼
     out = pd.DataFrame(index=df.index)
     out["region"] = "서울"
     out["reg_id"] = df.get("REG_ID", pd.NA)
@@ -317,7 +317,7 @@ def fetch_year(tmfc1: str, tmfc2: str, reg: str, key: str) -> pd.DataFrame:
     out["tm_fc"] = tm_fc                                       # 발표
     out["tm_ef"] = _tm(df["TM_EF"]) if "TM_EF" in df else pd.NaT   # 발효
     # 해제시각 — 이 API에는 TM_ED 컬럼이 **없다**(위 WRN_COLUMNS 주석 참조).
-    # CLAUDE.md §5 스키마 자리만 유지하고 NaT 로 둔다. 실제 해제는 CMD=3 인 별도 행이며,
+    # docs/datasets.md §7 스키마 자리만 유지하고 NaT 로 둔다. 실제 해제는 CMD=3 인 별도 행이며,
     # "발효 구간(발표~해제)" 조립은 transform 단계에서 발표행↔해제행을 짝지어 만든다.
     tm_ed_cols = [c for c in df.columns if re.fullmatch(r"TM_ED(_\d+)?", c)]
     out["tm_ed"] = _tm(df[tm_ed_cols[-1]]) if tm_ed_cols else pd.NaT

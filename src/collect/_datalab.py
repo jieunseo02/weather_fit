@@ -26,7 +26,7 @@ from ._common import NAVER_BASE, load_yaml, naver_headers, post_json
 
 T = TypeVar("T")
 
-# CLAUDE.md §5 shopping_trend_daily 스키마 + raw 추적용 2개(cid, is_anchor).
+# docs/datasets.md §7 shopping_trend_daily 스키마 + raw 추적용 2개(cid, is_anchor).
 # cid/is_anchor 는 processed 단계에서 설정 파일을 다시 읽지 않고도
 # "이 행이 어느 카테고리의 앵커였나"를 알 수 있게 하려고 raw에 남긴다.
 SCHEMA_COLS = [

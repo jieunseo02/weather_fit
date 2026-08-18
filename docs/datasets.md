@@ -358,3 +358,50 @@ notes: ratio는 배치별 상대값. rescaled 컬럼이 앵커 기준 재정규�
 | 네이버 쇼핑 검색 API | **2026-07-31 종료, 대체 없음.** T6 폐기 |
 | 네이버 데이터랩 | **API HUB 이관.** 기존 방식은 2027-06-30까지 유예 → 프로젝트 기간 내 사용 가능 |
 | 순위(TOP500) 데이터 | 공식 API 없음. 비공식 경로는 P2, 실패 허용. 최후 대체는 T3 지수 기반 자체 순위 |
+
+---
+
+## 7. 산출 스키마
+
+수집기가 만드는 테이블 정의. 코드 주석이 이 절을 참조한다.
+
+```sql
+weather_daily (                 -- W1 지상관측
+  date DATE, region STRING,
+  t_max FLOAT, t_min FLOAT, t_avg FLOAT,
+  precip_mm FLOAT, humidity FLOAT, wind FLOAT,
+  weather_code STRING           -- CA_TOT/RN_DAY/SD_NEW 파생. raw 에서는 NULL
+)
+
+weather_forecast_daily (        -- W2·W3 중기예보 발표분 아카이브
+  tmfc TIMESTAMP,               -- 발표시각 (1일 2회: 06/18 KST)
+  target_date DATE,             -- 예보 대상일
+  mod STRING,                   -- A01(24h) / A02(12h) — A02는 한 대상일에 00·12시 두 행
+  region STRING,
+  t_max FLOAT, t_min FLOAT, rn_st FLOAT, sky STRING, wf STRING
+)
+-- ★ 조인 규칙: 최소 리드타임 3일(실측 2.2~9.8일). "발표일 D-1 → 대상일 D" 는 성립하지
+--   않는다. 대상일 D 에 대해 `tmfc < D` 인 발표분 중 가장 최신을 고른다(실제로는 D-3).
+
+weather_warning (               -- W4 기상특보
+  reg_id STRING,                -- 서울은 4개 권역(L1100100~400)으로만 발표
+  wrn STRING,                   -- C한파 H폭염 R호우 S대설 D건조 W강풍 (실측 검증)
+  lvl STRING,                   -- 1주의 2주의보 3경보
+  cmd STRING,                   -- 1발표 3해제 6변경  ← 해제는 별도 행
+  tm_fc TIMESTAMP, tm_ef TIMESTAMP
+)
+-- TM_ED(해제시각) 컬럼은 존재하지 않는다. 발효구간은 발표행과 해제행을 짝지어 조립한다.
+
+shopping_trend_daily (          -- T1·T3·T4
+  date DATE, source STRING,     -- naver_datalab_category | _keyword | _search
+  category_l1 STRING, category_l2 STRING, keyword STRING NULL,
+  ratio FLOAT,                  -- API 원본 0~100 (배치별 상대값 — 배치 간 비교 불가)
+  rescaled FLOAT,               -- 앵커 대비 재정규화 ← 분석은 이걸 쓴다
+  batch_id STRING, cid STRING, is_anchor BOOL,
+  gender STRING NULL, age_group STRING NULL
+)
+
+derived_event (                 -- 룰 기반 생성 (transform 단계)
+  date DATE, region STRING, event_type STRING, phase STRING
+)
+```
