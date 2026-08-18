@@ -1,0 +1,14 @@
+# 1. API 키 및 환경변수
+.env
+
+# 2. 프로젝트 최상위 데이터 폴더 및 대용량 파일 제외
+/data/
+*.csv
+*.parquet
+*.json
+
+# 3. 파이썬 캐시 및 가상환경
+__pycache__/
+.venv/
+venv/
+.ipynb_checkpoints/
