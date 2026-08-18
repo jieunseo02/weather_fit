@@ -1,0 +1,96 @@
+collected_at: '2026-08-18'
+source: naver_datalab_category
+endpoint: POST /v1/datalab/shopping/categories
+auth: 'naver_developers (X-Naver-Client-*)  # NCP 미사용'
+request:
+  startDate: '2026-07-01'
+  endDate: '2026-07-31'
+  timeUnit: date
+  anchor_category:
+    name: 패션의류
+    cid: '50000000'
+  max_per_request: 3
+batches:
+- batch_id: cat_b01
+  members:
+  - 패션의류
+  - 여성의류
+  - 남성의류
+  cids:
+  - '50000000'
+  - '50000167'
+  - '50000169'
+- batch_id: cat_b02
+  members:
+  - 패션의류
+  - 여성신발
+  - 남성신발
+  cids:
+  - '50000000'
+  - '50000173'
+  - '50000174'
+- batch_id: cat_b03
+  members:
+  - 패션의류
+  - 여성가방
+  - 남성가방
+  cids:
+  - '50000000'
+  - '50000176'
+  - '50000177'
+- batch_id: cat_b04
+  members:
+  - 패션의류
+  - 모자
+  - 양말
+  cids:
+  - '50000000'
+  - '50000181'
+  - '50000166'
+- batch_id: cat_b05
+  members:
+  - 패션의류
+  - 장갑
+  - 주얼리
+  cids:
+  - '50000000'
+  - '50000182'
+  - '50000189'
+- batch_id: cat_b06
+  members:
+  - 패션의류
+  - 우산
+  - 수영
+  cids:
+  - '50000000'
+  - '50001482'
+  - '50000164'
+- batch_id: cat_b07
+  members:
+  - 패션의류
+  - 등산
+  - 선케어
+  cids:
+  - '50000000'
+  - '50000027'
+  - '50000191'
+api_calls: 7
+rows: 651
+columns:
+- date
+- source
+- category_l1
+- category_l2
+- keyword
+- ratio
+- rescaled
+- batch_id
+- gender
+- age_group
+- cid
+- is_anchor
+notes: ratio는 '요청에 포함된 카테고리들 × 요청 기간' 안의 상대값이라 원칙적으로 배치 간 비교 불가. rescaled = ratio
+  / (같은 batch_id·date의 앵커 ratio) 로 재정규화한 값이며 분석은 rescaled를 쓴다. 앵커 자신의 rescaled는 1.0.
+  앵커 ratio가 0인 날은 rescaled를 NaN으로 둔다(0 나누기 방지). [2026-07 씨드 관찰] 앵커 '패션의류'가 모든 배치에서
+  최대 카테고리라 분모가 늘 같았고, 그 결과 raw ratio가 우연히 배치 간 일치했다. 이는 API의 성질이 아니라 배치 구성의 결과이므로
+  raw ratio를 그대로 비교해도 된다고 일반화하지 말 것 — 앵커보다 큰 카테고리가 배치에 들어오면 스케일이 바뀐다.

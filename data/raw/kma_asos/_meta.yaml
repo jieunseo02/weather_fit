@@ -1,0 +1,13 @@
+collected_at: '2026-08-18'
+source: kma_apihub_kma_sfcdd3
+endpoint: https://apihub.kma.go.kr/api/typ01/url/kma_sfcdd3.php
+request:
+  tm1: '2023-01-05'
+  tm2: '2023-01-07'
+  stn: '108'
+  disp: 1
+  help: 1
+partition: '{yyyy-mm}.parquet'
+notes: 지상관측 일자료(ASOS). 최대 31일 제약으로 월 단위 분할 호출. raw 는 원문 문자열 유지, date/t_max/t_min/t_avg/precip_mm/humidity/wind
+  컬럼만 이름 변경+숫자 캐스팅. weather_code 는 transform 단계에서 파생.
+failed_months: []

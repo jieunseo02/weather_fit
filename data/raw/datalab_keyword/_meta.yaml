@@ -1,0 +1,74 @@
+collected_at: '2026-08-18'
+source: naver_datalab_keyword
+endpoint: POST /v1/datalab/shopping/category/keywords
+auth: 'naver_developers (X-Naver-Client-*)  # NCP 미사용'
+request:
+  startDate: '2026-07-01'
+  endDate: '2026-07-31'
+  timeUnit: date
+  groups:
+  - top_summer
+  - bottom_summer
+  - outerwear_winter
+  - rain
+  max_per_request: 5
+batches:
+- batch_id: kw_b01
+  cid: '50000000'
+  category_l1: 패션의류
+  anchor_keyword: 반팔티
+  keywords:
+  - 반팔티
+  - 민소매
+  - 린넨셔츠
+  - 반바지
+  - 린넨팬츠
+  from_groups: &id001
+  - top_summer
+  - bottom_summer
+  - outerwear_winter
+- batch_id: kw_b02
+  cid: '50000000'
+  category_l1: 패션의류
+  anchor_keyword: 반팔티
+  keywords:
+  - 반팔티
+  - 패딩
+  - 롱패딩
+  - 코트
+  - 무스탕
+  from_groups: *id001
+- batch_id: kw_b03
+  cid: '50000001'
+  category_l1: 패션잡화
+  anchor_keyword: 양말
+  keywords:
+  - 양말
+  - 우산
+  - 레인부츠
+  - 레인코트
+  - 방수자켓
+  from_groups:
+  - rain
+api_calls: 3
+rows: 401
+columns:
+- date
+- source
+- category_l1
+- category_l2
+- keyword
+- ratio
+- rescaled
+- batch_id
+- gender
+- age_group
+- cid
+- is_anchor
+notes: 'ratio는 ''해당 카테고리 안에서 요청 키워드들 × 요청 기간''의 상대값. rescaled = ratio / (같은 batch_id·date의
+  앵커 키워드 ratio). 앵커 자신은 1.0. 앵커 ratio가 0인 날은 NaN. ⚠️ cid가 다른 배치는 앵커가 달라 rescaled끼리도
+  직접 비교 불가 — 카테고리를 넘는 비교는 T4(datalab_search)를 쓸 것. [2026-07 씨드 관찰] 배치 간 앵커(''반팔티'')
+  raw ratio가 실제로 달랐다 = 배치별 정규화가 확인됐고 재정규화가 필수다. ⚠️ 클릭이 적은 키워드는 ratio 0이 아니라 **그 날짜
+  행 자체가 응답에서 빠진다** (2026-07: 롱패딩 28/31일, 레인코트 1/31일, 방수자켓 0/31일 = 행 없음). processed
+  단계에서 날짜축으로 reindex한 뒤 ''결측=0으로 볼지, 미관측으로 볼지''를 반드시 명시적으로 결정할 것. 그냥 join하면 조용히 NaN이
+  되어 평균·상관이 왜곡된다.'

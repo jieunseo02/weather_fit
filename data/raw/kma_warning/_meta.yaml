@@ -1,0 +1,26 @@
+collected_at: '2026-08-18'
+source: kma_apihub_wrn_met_data
+endpoints:
+  regions: https://apihub.kma.go.kr/api/typ01/url/wrn_reg.php
+  data: https://apihub.kma.go.kr/api/typ01/url/wrn_met_data.php
+request:
+  tmfc1: '2023-01-01'
+  tmfc2: '2026-07-31'
+  disp: 1
+  help: 1
+  reg:
+  - L1100000
+  - L1100100
+  - L1100200
+  - L1100300
+  - L1100400
+  reg_name:
+  - 서울
+  - 서울동남권
+  - 서울동북권
+  - 서울서남권
+  - 서울서북권
+partition: '{yyyy}.parquet (연 파티션)'
+notes: 기상특보 발표 이력. 특보구역 코드는 wrn_reg.php 로 런타임 조회 (만료 레코드 제외 + 서울 하위 권역 포함). WRN 코드
+  의미와 TM_ED(해제시각 여부)는 실제 응답으로 검증 필요.
+failed_years: []

@@ -1,0 +1,50 @@
+collected_at: '2026-08-18'
+source: naver_datalab_search
+endpoint: POST /v1/datalab/search
+auth: 'naver_developers (X-Naver-Client-*)  # NCP 미사용'
+request:
+  startDate: '2026-07-01'
+  endDate: '2026-07-31'
+  timeUnit: date
+  groups:
+  - outerwear_winter
+  - rain
+  anchor_keyword: 반팔티
+  max_groups: 5
+  keywords_per_group: 1
+batches:
+- batch_id: srch_b01
+  anchor_keyword: 반팔티
+  groups:
+  - 반팔티
+  - 패딩
+  - 롱패딩
+  - 코트
+  - 무스탕
+- batch_id: srch_b02
+  anchor_keyword: 반팔티
+  groups:
+  - 반팔티
+  - 우산
+  - 레인부츠
+  - 레인코트
+  - 방수자켓
+api_calls: 2
+rows: 310
+columns:
+- date
+- source
+- category_l1
+- category_l2
+- keyword
+- ratio
+- rescaled
+- batch_id
+- gender
+- age_group
+- cid
+- is_anchor
+notes: ratio는 '요청 그룹들 × 요청 기간'의 상대값. rescaled = ratio / (같은 batch_id·date의 앵커 ratio).
+  앵커 자신은 1.0. 앵커 ratio가 0인 날은 NaN. 카테고리 개념이 없어 전 배치가 동일 앵커를 쓰므로 배치 간 rescaled 비교가
+  가능하다. [2026-07 씨드 관찰] 배치 간 앵커 raw ratio가 달랐다 = 재정규화 필수. T3와 달리 모든 키워드가 31/31일 전부
+  채워져 나온다(희소 키워드도 결측 없음) — 검색어트렌드가 더 조밀한 시계열이다.
