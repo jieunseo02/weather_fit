@@ -33,7 +33,6 @@ from ._common import (
     kma_key,
     kma_rows,
     month_range,
-    write_meta,
     write_parquet,
 )
 
@@ -414,17 +413,6 @@ def backfill(start: str, end: str, stn: str = SEOUL["asos_stn"],
             print(f"{label} … 실패: {type(exc).__name__}: {_redact(exc)[:160]}")
             failed.append(partition)
 
-    write_meta(SOURCE, {
-        "collected_at": date.today().isoformat(),
-        "source": "kma_apihub_kma_sfcdd3",
-        "endpoint": ENDPOINT,
-        "request": {"tm1": start, "tm2": end, "stn": stn, "disp": 1, "help": 1},
-        "partition": "{yyyy-mm}.parquet",
-        "notes": ("지상관측 일자료(ASOS). 최대 31일 제약으로 월 단위 분할 호출. "
-                  "raw 는 원문 문자열 유지, date/t_max/t_min/t_avg/precip_mm/humidity/wind "
-                  "컬럼만 이름 변경+숫자 캐스팅. weather_code 는 transform 단계에서 파생."),
-        "failed_months": failed,
-    })
     return failed
 
 

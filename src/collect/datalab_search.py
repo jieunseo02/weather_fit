@@ -16,13 +16,13 @@ T3와 달리 **카테고리 개념이 없다.** 쇼핑 밖 검색 전체가 모�
     python -m src.collect.datalab_search --groups rain,outerwear_winter
     python -m src.collect.datalab_search --dry-run
 
-저장: ``data/raw/datalab_search/{YYYY-MM}.parquet`` + ``_meta.yaml``
+저장: ``data/raw/datalab_search/{YYYY-MM}.parquet``
 """
 from __future__ import annotations
 
 import datetime as dt
 
-from ._common import write_meta, write_parquet
+from ._common import write_parquet
 from ._datalab import (SCHEMA_COLS, call, chunk_with_anchor, check_period,
                        date_args, finalize, iter_results, load_categories,
                        partition_of)
@@ -114,30 +114,6 @@ def main() -> None:
 
     df = finalize(rows, SOURCE)
     path = write_parquet(df, DATASET, partition_of(args))
-    write_meta(DATASET, {
-        "collected_at": dt.date.today().isoformat(),
-        "source": SOURCE,
-        "endpoint": f"POST {PATH}",
-        "auth": "naver_developers (X-Naver-Client-*)  # NCP 미사용",
-        "request": {
-            "startDate": args.start, "endDate": args.end,
-            "timeUnit": args.time_unit,
-            "groups": groups or "all",
-            "anchor_keyword": load_categories()["anchor"]["keyword"],
-            "max_groups": MAX_GROUPS,
-            "keywords_per_group": 1,
-        },
-        "batches": log,
-        "api_calls": len(log),
-        "rows": int(len(df)),
-        "columns": SCHEMA_COLS,
-        "notes": (
-            "ratio는 '요청 그룹들 × 요청 기간'의 상대값. rescaled = ratio / (같은 batch_id·date의 앵커 ratio). "
-            "앵커 자신은 1.0. 앵커 ratio가 0인 날은 NaN. 카테고리 개념이 없어 전 배치가 동일 앵커를 쓰므로 배치 간 rescaled 비교가 가능하다. "
-            "[2026-07 씨드 관찰] 배치 간 앵커 raw ratio가 달랐다 = 재정규화 필수. "
-            "T3와 달리 모든 키워드가 31/31일 전부 채워져 나온다(희소 키워드도 결측 없음) — 검색어트렌드가 더 조밀한 시계열이다. "
-        ),
-    })
     print(f"\n{path}  rows={len(df)}  calls={len(log)}")
 
 

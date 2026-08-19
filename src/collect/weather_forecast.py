@@ -42,7 +42,6 @@ from ._common import (
     kma_key,
     kma_rows,
     month_range,
-    write_meta,
     write_parquet,
 )
 
@@ -351,19 +350,6 @@ def backfill(start: str, end: str, kinds: list[str] | None = None) -> tuple[list
         path = write_parquet(merged, SOURCE, partition)
         print(f"{label} … 저장 {len(merged):>4}행 → {path.name}")
 
-    write_meta(SOURCE, {
-        "collected_at": date.today().isoformat(),
-        "source": "kma_apihub_fct_afs_wc + fct_afs_wl",
-        "endpoints": {k: v["url"] for k, v in ENDPOINTS.items()},
-        "request": {"tmfc1": start, "tmfc2": end, "disp": 1, "help": 1,
-                    "reg": {k: v["reg"] for k, v in ENDPOINTS.items()}},
-        "partition": "{yyyy-mm}.parquet (tmfc 발표시각 기준 월 파티션)",
-        "notes": ("중기예보 발표분 아카이브. src 컬럼으로 temp(기온)/land(육상)을 구분해 "
-                  "union 저장(조인 금지). tmfc=발표시각, target_date=예보 대상일. "
-                  "학습 조인 시 tmfc < target_date 조건을 반드시 걸어야 누수가 없다."),
-        "failed_months": failed,
-        "permission_denied": sorted(denied),
-    })
     return failed, denied
 
 

@@ -119,14 +119,6 @@ def write_parquet(df: pd.DataFrame, source: str, partition: str) -> Path:
     return path
 
 
-def write_meta(source: str, meta: dict[str, Any]) -> Path:
-    """수집 메타데이터. 없으면 6개월 뒤 재현이 불가능하다."""
-    out = DATA_RAW / source
-    out.mkdir(parents=True, exist_ok=True)
-    path = out / "_meta.yaml"
-    path.write_text(yaml.safe_dump(meta, allow_unicode=True, sort_keys=False),
-                    encoding="utf-8")
-    return path
 
 
 # ── 기간 유틸 ─────────────────────────────────────────────

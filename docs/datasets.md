@@ -328,24 +328,17 @@ data/
 
 `raw/` 에는 **API 응답을 최소 가공만 해서** 넣는다(정규화·조인 금지). rescaling·파생변수는 전부 `processed/` 단계에서 한다 — 규칙이 바뀌어도 API를 다시 때리지 않기 위해서다.
 
-### 제공 시 함께 넘길 것
+### 수집 이력
 
-각 데이터셋마다 **수집 메타데이터**를 같이 남긴다. 없으면 6개월 뒤 재현이 불가능하다.
+| 데이터셋 | 수집일 | 요청 조건 |
+|---|---|---|
+| `kma_asos` | 2026-08-18 | `stn=108`, 2023-01-01~2026-07-31, 월 단위 43회 |
+| `kma_forecast` | 2026-08-18 | `reg` 기온 `11B10101` / 육상 `11B00000`, 발표시각 기준 월 파티션 |
+| `kma_warning` | 2026-08-18 | `reg` 서울 5개 구역, 연 파티션 |
+| `datalab_*` | 2026-08-18 | 2026-07-01~31, `timeUnit=date`, 앵커 포함 배치 |
 
-```yaml
-# data/raw/datalab_category/_meta.yaml
-collected_at: 2026-08-20
-source: naver_datalab_shopping_categories
-request:
-  startDate: 2023-01-01
-  endDate: 2026-07-31
-  timeUnit: date
-  anchor_category: "50000000"   # 재스케일링 기준
-  batches: [[앵커, 여성의류, 남성의류], ...]
-notes: ratio는 배치별 상대값. rescaled 컬럼이 앵커 기준 재정규화 결과.
-```
-
----
+재현하려면 같은 명령을 다시 실행하면 된다. 조건은 전부 코드와 `configs/categories.yaml` 에 있고,
+어떤 배치에서 나온 행인지는 **parquet 의 `batch_id` 컬럼**으로 추적된다.
 
 ## 6. 확정 사항 요약 (PRD 반영 필요)
 

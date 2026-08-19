@@ -9,7 +9,7 @@
     python -m src.collect.datalab_category                 # 어제 하루
     python -m src.collect.datalab_category --dry-run       # 호출 없이 배치 구성만 확인
 
-저장: ``data/raw/datalab_category/{YYYY-MM}.parquet`` + ``_meta.yaml``
+저장: ``data/raw/datalab_category/{YYYY-MM}.parquet``
 
 주의 — 기간을 쪼개지 마라. 3년 백필도 ``--start 2023-01-01 --end 2026-07-31`` 한 번이다.
 이유는 ``_datalab.check_period`` 주석 참조.
@@ -18,7 +18,7 @@ from __future__ import annotations
 
 import datetime as dt
 
-from ._common import write_meta, write_parquet
+from ._common import write_parquet
 from ._datalab import (SCHEMA_COLS, call, chunk_with_anchor, check_period,
                        date_args, finalize, iter_results, load_categories,
                        partition_of)
@@ -117,32 +117,6 @@ def main() -> None:
     df = finalize(rows, SOURCE)
     part = partition_of(args)
     path = write_parquet(df, DATASET, part)
-    write_meta(DATASET, {
-        "collected_at": dt.date.today().isoformat(),
-        "source": SOURCE,
-        "endpoint": f"POST {PATH}",
-        "auth": "naver_developers (X-Naver-Client-*)  # NCP 미사용",
-        "request": {
-            "startDate": args.start, "endDate": args.end,
-            "timeUnit": args.time_unit,
-            "anchor_category": {
-                "name": load_categories()["anchor"]["category"]["name"],
-                "cid": str(load_categories()["anchor"]["category"]["cid"]),
-            },
-            "max_per_request": MAX_PER_REQUEST,
-        },
-        "batches": log,
-        "api_calls": len(log),
-        "rows": int(len(df)),
-        "columns": SCHEMA_COLS,
-        "notes": (
-            "ratio는 '요청에 포함된 카테고리들 × 요청 기간' 안의 상대값이라 원칙적으로 배치 간 비교 불가. "
-            "rescaled = ratio / (같은 batch_id·date의 앵커 ratio) 로 재정규화한 값이며 분석은 rescaled를 쓴다. "
-            "앵커 자신의 rescaled는 1.0. 앵커 ratio가 0인 날은 rescaled를 NaN으로 둔다(0 나누기 방지). "
-            "[2026-07 씨드 관찰] 앵커 '패션의류'가 모든 배치에서 최대 카테고리라 분모가 늘 같았고, 그 결과 raw ratio가 우연히 배치 간 일치했다. "
-            "이는 API의 성질이 아니라 배치 구성의 결과이므로 raw ratio를 그대로 비교해도 된다고 일반화하지 말 것 — 앵커보다 큰 카테고리가 배치에 들어오면 스케일이 바뀐다. "
-        ),
-    })
     print(f"\n{path}  rows={len(df)}  calls={len(log)}")
 
 

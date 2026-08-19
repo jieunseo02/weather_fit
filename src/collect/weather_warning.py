@@ -39,7 +39,6 @@ from ._common import (
     get,
     kma_key,
     kma_rows,
-    write_meta,
     write_parquet,
 )
 
@@ -397,19 +396,6 @@ def backfill(start: str, end: str, reg: str | None = None,
         path = write_parquet(merged, SOURCE, partition)
         print(f"{label} … 저장 {len(merged):>4}행 → {path.name}")
 
-    write_meta(SOURCE, {
-        "collected_at": date.today().isoformat(),
-        "source": "kma_apihub_wrn_met_data",
-        "endpoints": {"regions": REG_ENDPOINT, "data": DATA_ENDPOINT},
-        "request": {"tmfc1": start, "tmfc2": end, "disp": 1, "help": 1,
-                    "reg": [c for c, _ in targets],
-                    "reg_name": [n for _, n in targets]},
-        "partition": "{yyyy}.parquet (연 파티션)",
-        "notes": ("기상특보 발표 이력. 특보구역 코드는 wrn_reg.php 로 런타임 조회 "
-                  "(만료 레코드 제외 + 서울 하위 권역 포함). "
-                  "WRN 코드 의미와 TM_ED(해제시각 여부)는 실제 응답으로 검증 필요."),
-        "failed_years": failed,
-    })
     return failed
 
 
