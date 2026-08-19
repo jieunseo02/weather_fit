@@ -8,6 +8,7 @@
 from __future__ import annotations
 
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -184,14 +185,25 @@ def check_datagokr(key: str) -> None:
 
 
 def main() -> int:
-    if not SECRETS.exists():
-        print(f"{SECRETS} 가 없습니다. secrets.example.yaml 을 복사하세요.")
+    # 키는 .env / 환경변수 / configs/secrets.yaml 어디에 있어도 된다.
+    sys.path.insert(0, str(ROOT))
+    from src.collect._common import load_secrets
+
+    try:
+        s = load_secrets()
+    except FileNotFoundError as e:
+        print(e)
         return 1
 
-    s = yaml.safe_load(SECRETS.read_text(encoding="utf-8")) or {}
     get = lambda *ks: (s.get(ks[0]) or {}).get(ks[1]) or ""
 
-    print(f"검증 대상: {SECRETS}")
+    sources = [name for name, exists in
+               [(".env", (ROOT / ".env").exists()),
+                ("configs/secrets.yaml", SECRETS.exists()),
+                ("환경변수", any(os.getenv(v) for v in
+                               ("KMA_APIHUB_AUTH_KEY", "NAVER_CLIENT_ID")))]
+               if exists]
+    print(f"키 출처: {' + '.join(sources) or '없음'}")
     check_kma(get("kma_apihub", "auth_key"))
     check_naver(get("naver", "client_id"), get("naver", "client_secret"),
                 get("naver_api_hub", "access_key_id"), get("naver_api_hub", "secret_key"))

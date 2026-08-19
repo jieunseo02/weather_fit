@@ -4,6 +4,7 @@
 """
 from __future__ import annotations
 
+import os
 import time
 from pathlib import Path
 from typing import Any, Iterator
@@ -35,12 +36,58 @@ def load_yaml(name: str) -> dict:
     return yaml.safe_load((CONFIGS / name).read_text(encoding="utf-8"))
 
 
-def load_secrets() -> dict:
-    path = CONFIGS / "secrets.yaml"
+# 환경변수 이름 → secrets 구조 상의 위치
+ENV_MAP = {
+    "KMA_APIHUB_AUTH_KEY":   ("kma_apihub", "auth_key"),
+    "NAVER_CLIENT_ID":       ("naver", "client_id"),
+    "NAVER_CLIENT_SECRET":   ("naver", "client_secret"),
+    "DATA_GO_KR_SERVICE_KEY": ("data_go_kr", "service_key"),
+    "KOSIS_API_KEY":         ("kosis", "api_key"),
+}
+
+
+def _load_dotenv(path: Path) -> dict[str, str]:
+    """의존성 없이 .env 를 읽는다. `KEY=value`, `export KEY=value`, `#` 주석 지원."""
+    out: dict[str, str] = {}
     if not path.exists():
+        return out
+    for line in path.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, _, val = line.removeprefix("export ").partition("=")
+        val = val.strip().strip('"').strip("'")
+        if val:
+            out[key.strip()] = val
+    return out
+
+
+def load_secrets() -> dict:
+    """`.env` → 환경변수 → `configs/secrets.yaml` 순으로 키를 찾는다.
+
+    셋 중 아무거나 쓰면 된다. 같은 키가 여러 곳에 있으면 앞선 것이 이긴다.
+    """
+    merged: dict[str, dict[str, str]] = {}
+
+    env = {**_load_dotenv(PROJECT_ROOT / ".env"), **os.environ}
+    for var, (section, field) in ENV_MAP.items():
+        if env.get(var):
+            merged.setdefault(section, {})[field] = env[var]
+
+    path = CONFIGS / "secrets.yaml"
+    if path.exists():
+        for section, fields in (yaml.safe_load(path.read_text(encoding="utf-8")) or {}).items():
+            for field, value in (fields or {}).items():
+                if value:
+                    merged.setdefault(section, {}).setdefault(field, value)
+
+    if not merged:
         raise FileNotFoundError(
-            f"{path} 없음. configs/secrets.example.yaml 을 복사해 만드세요.")
-    return yaml.safe_load(path.read_text(encoding="utf-8"))
+            "API 키를 찾을 수 없습니다. 다음 중 하나를 준비하세요.\n"
+            f"  1) {PROJECT_ROOT / '.env'}  (.env.example 참고)\n"
+            f"  2) 환경변수 {', '.join(ENV_MAP)}\n"
+            f"  3) {path}  (configs/secrets.example.yaml 복사)")
+    return merged
 
 
 def kma_key() -> str:
