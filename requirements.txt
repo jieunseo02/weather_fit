@@ -1,3 +1,6 @@
+# Python 3.10.13 (.python-version 참조)
+# 3.12+ 에서는 lightgbm 휠이 없어 설치가 실패할 수 있다.
+
 # Core
 pandas>=2.2
 polars>=1.0
