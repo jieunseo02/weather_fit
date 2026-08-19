@@ -65,7 +65,7 @@
 
 ## 6. 기술 스택 및 데이터 파이프라인 (Tech Stack)
 - **Language & Core**: Python 3.10+, Pandas, Polars
-- **Storage & Query**: Parquet, DuckDB
+- **Storage & Query**: Parquet, DuckDB (DB를 쓸 필요가 없다. 그만큼 대용량 데이터가 아님. csv로 충분하다.)
 - **Analysis & ML**: statsmodels (STL), scikit-learn, LightGBM
 - **Visualization**: Matplotlib, Seaborn, Plotly, Streamlit
 - **Automation**: 로컬 cron을 활용한 일별 데이터 자동 수집 및 파이프라인 운영
