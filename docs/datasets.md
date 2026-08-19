@@ -1,10 +1,10 @@
 # 데이터셋 카탈로그 (weather_fit)
 
-멘토가 백필해 제공하는 데이터셋 정의서. 각 소스의 **엔드포인트 / 인증 / 백필 가능 여부 / 한도 / 저장 경로**를 확정한다.
+데이터셋 정의서. 각 소스의 **엔드포인트 / 인증 / 백필 가능 여부 / 한도 / 저장 경로**를 확정한다.
 
 - 대상 지역: **서울** (ASOS 지점 `108`, 예보관서 `109`, 중기육상 `11B00000`, 중기기온 `11B10101`)
 - 대상 기간: **2023-01-01 ~ 2026-07-31** (3년, 코로나 기간 제외)
-- 저장 포맷: Parquet, 월 파티션 `{yyyy-mm}.parquet`
+- 저장 포맷: CSV, 월 파티션 `{yyyy-mm}.csv`
 
 ---
 
@@ -233,7 +233,7 @@ pytrends.build_payload(["패딩"], timeframe="2023-01-01 2026-07-31", geo="KR-11
 
 **① T3는 클릭이 적은 날의 행을 통째로 누락시킨다 — `ratio=0`이 아니라 행 자체가 없다.**
 
-2026-07 기준 롱패딩 28/31일, 레인코트 1/31일, **방수자켓은 0건이라 parquet에 아예 존재하지 않는다.** 그대로 join하면 조용히 NaN이 되어 평균·상관이 왜곡된다. `processed` 단계에서 날짜축을 reindex한 뒤 **"결측 = 0인가, 미관측인가"를 명시적으로 결정**해야 한다.
+2026-07 기준 롱패딩 28/31일, 레인코트 1/31일, **방수자켓은 0건이라 파일에 아예 존재하지 않는다.** 그대로 join하면 조용히 NaN이 되어 평균·상관이 왜곡된다. `processed` 단계에서 날짜축을 reindex한 뒤 **"결측 = 0인가, 미관측인가"를 명시적으로 결정**해야 한다.
 
 겨울 키워드를 여름에 뽑으면 이 현상이 심해지므로, 3년 백필에서는 계절 반대 구간이 통째로 비는 시리즈가 생긴다. 이 결정은 분석 결과를 바꾸므로 노트북에 근거를 남길 것.
 
@@ -307,19 +307,19 @@ T3는 "카테고리 안에서의" 상대값이라 cid가 다르면 앵커도 다
 ```
 data/
 ├── raw/
-│   ├── kma_asos/2023-01.parquet …            # W1
-│   ├── kma_fct_temp/2023-01.parquet …        # W2
-│   ├── kma_fct_land/2023-01.parquet …        # W3
-│   ├── kma_warning/2023.parquet …            # W4 (연 파티션)
-│   ├── datalab_category/2023-01.parquet …    # T1
-│   ├── datalab_keyword/2023-01.parquet …     # T3
-│   ├── datalab_search/2023-01.parquet …      # T4
-│   └── google_trends/2023-01.parquet …       # T7
+│   ├── kma_asos/2023-01.csv …            # W1
+│   ├── kma_fct_temp/2023-01.csv …        # W2
+│   ├── kma_fct_land/2023-01.csv …        # W3
+│   ├── kma_warning/2023.csv …            # W4 (연 파티션)
+│   ├── datalab_category/2023-01.csv …    # T1
+│   ├── datalab_keyword/2023-01.csv …     # T3
+│   ├── datalab_search/2023-01.csv …      # T4
+│   └── google_trends/2023-01.csv …       # T7
 ├── processed/
-│   ├── weather_daily.parquet
-│   ├── weather_forecast_daily.parquet        # 발표일-대상일 쌍
-│   ├── shopping_trend_daily.parquet
-│   └── derived_event.parquet
+│   ├── weather_daily.csv
+│   ├── weather_forecast_daily.csv        # 발표일-대상일 쌍
+│   ├── shopping_trend_daily.csv
+│   └── derived_event.csv
 └── external/
     ├── monsoon_official.csv                  # 장마 공식 발표일 (수동)
     ├── holidays.csv                          # C1
@@ -338,7 +338,7 @@ data/
 | `datalab_*` | 2026-08-18 | 2026-07-01~31, `timeUnit=date`, 앵커 포함 배치 |
 
 재현하려면 같은 명령을 다시 실행하면 된다. 조건은 전부 코드와 `configs/categories.yaml` 에 있고,
-어떤 배치에서 나온 행인지는 **parquet 의 `batch_id` 컬럼**으로 추적된다.
+어떤 배치에서 나온 행인지는 **CSV 의 `batch_id` 컬럼**으로 추적된다.
 
 ## 6. 확정 사항 요약 (PRD 반영 필요)
 

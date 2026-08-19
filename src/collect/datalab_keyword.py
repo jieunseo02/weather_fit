@@ -19,13 +19,13 @@ T1과 다른 점 하나: ratio가 **"그 카테고리 안에서의"** 상대값�
     python -m src.collect.datalab_keyword --groups rain,top_summer
     python -m src.collect.datalab_keyword --dry-run
 
-저장: ``data/raw/datalab_keyword/{YYYY-MM}.parquet``
+저장: ``data/raw/datalab_keyword/{YYYY-MM}.csv``
 """
 from __future__ import annotations
 
 import datetime as dt
 
-from ._common import write_parquet
+from ._common import write_csv
 from ._datalab import (SCHEMA_COLS, call, chunk_with_anchor, check_period,
                        date_args, finalize, iter_results, keyword_anchor,
                        load_categories, partition_of)
@@ -142,7 +142,7 @@ def main() -> None:
         return
 
     df = finalize(rows, SOURCE)
-    path = write_parquet(df, DATASET, partition_of(args))
+    path = write_csv(df, DATASET, partition_of(args))
     print(f"\n{path}  rows={len(df)}  calls={len(log)}")
 
 

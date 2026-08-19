@@ -110,13 +110,33 @@ def kma_rows(text: str) -> list[str]:
 
 
 # ── 저장 ──────────────────────────────────────────────────
-def write_parquet(df: pd.DataFrame, source: str, partition: str) -> Path:
-    """data/raw/{source}/{partition}.parquet 로 저장."""
+# raw 는 CSV 로 둔다. 전체가 수 MB 수준이라 Parquet 의 압축·타입보존 이점보다
+# "엑셀로도 열리고 diff 도 보이는" 단순함이 낫다.
+# 대신 CSV 는 타입을 보존하지 않으므로, 재읽기가 필요한 곳에서는
+# 아래 as_text_frame / read_raw 로 **문자열 표현을 통일**해 다뤄야 한다.
+# 그러지 않으면 저장된 "108" 이 다시 읽을 때 108 로 추론돼 키 비교가 어긋난다.
+
+def write_csv(df: pd.DataFrame, source: str, partition: str) -> Path:
+    """data/raw/{source}/{partition}.csv 로 저장."""
     out = DATA_RAW / source
     out.mkdir(parents=True, exist_ok=True)
-    path = out / f"{partition}.parquet"
-    df.to_parquet(path, index=False)
+    path = out / f"{partition}.csv"
+    df.to_csv(path, index=False, encoding="utf-8")
     return path
+
+
+def raw_path(source: str, partition: str) -> Path:
+    return DATA_RAW / source / f"{partition}.csv"
+
+
+def as_text_frame(df: pd.DataFrame) -> pd.DataFrame:
+    """to_csv 가 써낼 텍스트와 같은 표현으로 정규화한다 (결측은 빈 문자열)."""
+    return df.astype(object).where(df.notna(), "").astype(str)
+
+
+def read_raw(path: Path) -> pd.DataFrame:
+    """저장된 CSV 를 타입 추론 없이 문자열 그대로 읽는다."""
+    return pd.read_csv(path, dtype=str, keep_default_na=False, encoding="utf-8")
 
 
 

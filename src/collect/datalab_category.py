@@ -9,7 +9,7 @@
     python -m src.collect.datalab_category                 # 어제 하루
     python -m src.collect.datalab_category --dry-run       # 호출 없이 배치 구성만 확인
 
-저장: ``data/raw/datalab_category/{YYYY-MM}.parquet``
+저장: ``data/raw/datalab_category/{YYYY-MM}.csv``
 
 주의 — 기간을 쪼개지 마라. 3년 백필도 ``--start 2023-01-01 --end 2026-07-31`` 한 번이다.
 이유는 ``_datalab.check_period`` 주석 참조.
@@ -18,7 +18,7 @@ from __future__ import annotations
 
 import datetime as dt
 
-from ._common import write_parquet
+from ._common import write_csv
 from ._datalab import (SCHEMA_COLS, call, chunk_with_anchor, check_period,
                        date_args, finalize, iter_results, load_categories,
                        partition_of)
@@ -116,7 +116,7 @@ def main() -> None:
 
     df = finalize(rows, SOURCE)
     part = partition_of(args)
-    path = write_parquet(df, DATASET, part)
+    path = write_csv(df, DATASET, part)
     print(f"\n{path}  rows={len(df)}  calls={len(log)}")
 
 

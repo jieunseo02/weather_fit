@@ -16,13 +16,13 @@ T3와 달리 **카테고리 개념이 없다.** 쇼핑 밖 검색 전체가 모�
     python -m src.collect.datalab_search --groups rain,outerwear_winter
     python -m src.collect.datalab_search --dry-run
 
-저장: ``data/raw/datalab_search/{YYYY-MM}.parquet``
+저장: ``data/raw/datalab_search/{YYYY-MM}.csv``
 """
 from __future__ import annotations
 
 import datetime as dt
 
-from ._common import write_parquet
+from ._common import write_csv
 from ._datalab import (SCHEMA_COLS, call, chunk_with_anchor, check_period,
                        date_args, finalize, iter_results, load_categories,
                        partition_of)
@@ -113,7 +113,7 @@ def main() -> None:
         return
 
     df = finalize(rows, SOURCE)
-    path = write_parquet(df, DATASET, partition_of(args))
+    path = write_csv(df, DATASET, partition_of(args))
     print(f"\n{path}  rows={len(df)}  calls={len(log)}")
 
 

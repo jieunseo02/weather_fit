@@ -42,7 +42,10 @@ from ._common import (
     kma_key,
     kma_rows,
     month_range,
-    write_parquet,
+    write_csv,
+    raw_path,
+    read_raw,
+    as_text_frame,
 )
 
 SOURCE = "kma_forecast"
@@ -292,9 +295,11 @@ def fetch(kind: str, tmfc1: str, tmfc2: str, key: str, reg: str | None = None) -
 
 def _merge_partition(df: pd.DataFrame, partition: str, keys: list[str]) -> pd.DataFrame:
     """기존 파티션과 합쳐 멱등성을 보장한다(같은 키는 새 응답이 이긴다)."""
-    path = DATA_RAW / SOURCE / f"{partition}.parquet"
+    path = raw_path(SOURCE, partition)
     if path.exists():
-        df = pd.concat([pd.read_parquet(path), df], ignore_index=True)
+        # CSV 는 타입을 보존하지 않는다. 양쪽을 문자열 표현으로 맞춰야
+        # 키 비교가 어긋나지 않는다 (저장된 "108" vs 새 108).
+        df = pd.concat([read_raw(path), as_text_frame(df)], ignore_index=True)
     return (df.drop_duplicates(subset=keys, keep="last")
               .sort_values(keys)
               .reset_index(drop=True))
@@ -347,7 +352,7 @@ def backfill(start: str, end: str, kinds: list[str] | None = None) -> tuple[list
 
         merged = pd.concat(frames, ignore_index=True)
         merged = _merge_partition(merged, partition, DEDUP_KEYS)
-        path = write_parquet(merged, SOURCE, partition)
+        path = write_csv(merged, SOURCE, partition)
         print(f"{label} … 저장 {len(merged):>4}행 → {path.name}")
 
     return failed, denied

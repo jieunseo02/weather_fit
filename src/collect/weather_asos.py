@@ -9,7 +9,7 @@
 왜 월 단위로 쪼개 호출하나
     kma_sfcdd3.php 는 **기간 조회 최대 31일** 제약이 있다. 월 단위로 자르면
     (1) 31일을 넘길 일이 없고 (2) 실패한 달만 골라 재실행할 수 있으며
-    (3) 저장 파티션(`{yyyy-mm}.parquet`)과 1:1로 대응돼 재개 지점이 명확하다.
+    (3) 저장 파티션(`{yyyy-mm}.csv`)과 1:1로 대응돼 재개 지점이 명확하다.
 
 사용법
     python -m src.collect.weather_asos                                # 어제 1일 (증분)
@@ -33,7 +33,10 @@ from ._common import (
     kma_key,
     kma_rows,
     month_range,
-    write_parquet,
+    write_csv,
+    raw_path,
+    read_raw,
+    as_text_frame,
 )
 
 SOURCE = "kma_asos"
@@ -327,9 +330,11 @@ def _merge_partition(df: pd.DataFrame, partition: str, keys: list[str]) -> pd.Da
     부분 기간(예: 1/1~1/5)만 다시 돌려도 이미 받아둔 나머지 날짜가 날아가지 않고,
     같은 날짜를 두 번 받으면 새 응답이 이긴다(keep="last").
     """
-    path = DATA_RAW / SOURCE / f"{partition}.parquet"
+    path = raw_path(SOURCE, partition)
     if path.exists():
-        df = pd.concat([pd.read_parquet(path), df], ignore_index=True)
+        # CSV 는 타입을 보존하지 않는다. 양쪽을 문자열 표현으로 맞춰야
+        # 키 비교가 어긋나지 않는다 (저장된 "108" vs 새 108).
+        df = pd.concat([read_raw(path), as_text_frame(df)], ignore_index=True)
     return (df.drop_duplicates(subset=keys, keep="last")
               .sort_values(keys)
               .reset_index(drop=True))
@@ -402,7 +407,7 @@ def backfill(start: str, end: str, stn: str = SEOUL["asos_stn"],
                 print(f"{label} … 데이터 0건 (건너뜀)")
                 continue
             df = _merge_partition(df, partition, ["date", "stn"])
-            path = write_parquet(df, SOURCE, partition)
+            path = write_csv(df, SOURCE, partition)
             print(f"{label} … {len(df):>3}행 → {path.name}")
         except ApiError as exc:
             if "403" in str(exc) or "활용신청" in str(exc):
