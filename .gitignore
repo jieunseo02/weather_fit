@@ -1,0 +1,31 @@
+# 시크릿 — 절대 커밋 금지
+configs/secrets.yaml
+.env
+
+# 데이터
+# 기상(kma_*)은 담지 않는다 — 수집기를 돌리면 그대로 재현된다.
+# 데이터랩(datalab_*)은 담는다 — 상대지수 정규화 때문에 결과 형태를 먼저 봐야 한다.
+data/raw/*
+!data/raw/.gitkeep
+!data/raw/datalab_category
+!data/raw/datalab_keyword
+!data/raw/datalab_search
+data/processed/*
+!data/processed/.gitkeep
+
+# 로그
+logs/
+*.log
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+.pytest_cache/
+
+# OS / IDE
+.DS_Store
+.idea/
+.vscode/
