@@ -1,9 +1,14 @@
 # 시크릿 — 절대 커밋 금지
 configs/secrets.yaml
 
-# 데이터 — 저장소에 담지 않는다. 디렉토리 구조만 유지한다.
+# 데이터
+# 기상(kma_*)은 담지 않는다 — 수집기를 돌리면 그대로 재현된다.
+# 데이터랩(datalab_*)은 담는다 — 상대지수 정규화 때문에 결과 형태를 먼저 봐야 한다.
 data/raw/*
 !data/raw/.gitkeep
+!data/raw/datalab_category
+!data/raw/datalab_keyword
+!data/raw/datalab_search
 data/processed/*
 !data/processed/.gitkeep
 
