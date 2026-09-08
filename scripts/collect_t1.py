@@ -121,8 +121,8 @@ def main():
     final_df = final_df.sort_values(by=["date", "category"]).reset_index(drop=True)
     
     # 4. 결과 저장
-    os.makedirs("data/raw", exist_ok=True)
-    output_path = "data/raw/t1_shopping_category.csv"
+    os.makedirs("data/raw/datalab_category", exist_ok=True)
+    output_path = "data/raw/datalab_category/all_years.csv"
     final_df.to_csv(output_path, index=False, encoding="utf-8-sig")
     
     print(f"\n[성공] T1 데이터셋 수집 및 정규화 완료 -> {output_path}")

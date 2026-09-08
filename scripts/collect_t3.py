@@ -38,7 +38,7 @@ TARGET_KEYWORDS = [
     {"name": "패딩", "param": ["패딩"]},
     {"name": "코트", "param": ["코트"]},
     {"name": "목도리", "param": ["목도리"]},
-    {"name": "히트텍", "param": ["히트텍"]},
+    {"name": "히트텍", "param": ["히트텍"]}, 
     # 봄/가을 환절기 아이템
     {"name": "가디건", "param": ["가디건"]},
     {"name": "자켓", "param": ["자켓"]},
@@ -130,8 +130,8 @@ def main():
     final_df = merged[schema_cols].sort_values(by=["date", "batch_id", "keyword"]).reset_index(drop=True)
     
     # 4. 저장
-    os.makedirs("data/raw", exist_ok=True)
-    out_path = "data/raw/t3_shopping_keyword.csv"
+    os.makedirs("data/raw/datalab_keyword", exist_ok=True)
+    out_path = "data/raw/datalab_keyword/all_years.csv"
     final_df.to_csv(out_path, index=False, encoding="utf-8-sig")
     
     print(f"\n[성공] T3 데이터셋 수집 및 정규화 완료 -> {out_path}")
