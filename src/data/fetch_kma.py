@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 # ==============================================================================
 # .env 파일에 숨겨둔 KMA_AUTH_KEY 값을 가져옵니다.
 load_dotenv()
-AUTH_KEY = os.getenv("KMA_AUTH_KEY")
+AUTH_KEY = os.getenv("KMA_APIHUB_AUTH_KEY")
 
 # 만약 .env 파일에 키가 없거나 이름이 틀렸다면 에러를 발생시켜 조기에 중단합니다.
 if not AUTH_KEY:
@@ -286,12 +286,12 @@ def run_backfill(start_year=2023, end_year=2026):
                 daily.loc[mask, 'is_warning'] = 1
                 daily.loc[mask, 'warning_type'] = str(row['wrn_type'])
                 
+# --------------------------------------------------------------------------
+    # [Step 4] 최종 정제 데이터 저장 (CSV 포맷으로 변경!)
     # --------------------------------------------------------------------------
-    # [Step 4] 최종 정제 데이터 저장 (Parquet 포맷)
-    # --------------------------------------------------------------------------
-    out_path = "data/02_intermediate/daily_weather.parquet"
-    # 날짜 순서대로 정렬하여 가볍고 빠른 Parquet 형식으로 저장합니다.
-    daily.sort_values('date').reset_index(drop=True).to_parquet(out_path, index=False)
+    out_path = "data/02_intermediate/daily_weather.csv"
+    # 날짜 순서대로 정렬하여 엑셀에서 열 수 있는 CSV 형식으로 저장합니다. (한글 깨짐 방지 추가)
+    daily.sort_values('date').reset_index(drop=True).to_csv(out_path, index=False, encoding="utf-8-sig")
     
     print(f"\n🎉 [수집 및 정제 완료!] 저장 위치: {out_path}")
     print(f"📊 총 수집된 일수: {len(daily)}일")

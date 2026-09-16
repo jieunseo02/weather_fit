@@ -27,7 +27,7 @@ from ._datalab import (SCHEMA_COLS, call, chunk_with_anchor, check_period,
                        date_args, finalize, iter_results, load_categories,
                        partition_of)
 
-PATH = "/v1/datalab/search"
+PATH = "/search-trend/v1/search"
 SOURCE = "naver_datalab_search"      # shopping_trend_daily.source 컬럼 값
 DATASET = "datalab_search"          # data/raw/ 아래 디렉토리명 (docs/datasets.md §5)
 MAX_GROUPS = 5               # API 상한. 1슬롯은 앵커 고정 → 배치당 신규 키워드 4개
