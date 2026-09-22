@@ -8,6 +8,7 @@ import os
 import time
 from pathlib import Path
 from typing import Any, Iterator
+from dotenv import load_dotenv
 
 import pandas as pd
 import requests
@@ -20,7 +21,7 @@ DATA_PROCESSED = PROJECT_ROOT / "data" / "processed"
 DATA_EXTERNAL = PROJECT_ROOT / "data" / "external"
 
 KMA_BASE = "https://apihub.kma.go.kr/api/typ01/url"
-NAVER_BASE = "https://openapi.naver.com"
+NAVER_BASE = "https://naverapihub.apigw.ntruss.com"
 
 # 서울 고정 상수 (docs/datasets.md 참조)
 SEOUL = {
@@ -95,10 +96,13 @@ def kma_key() -> str:
 
 
 def naver_headers() -> dict[str, str]:
-    n = load_secrets()["naver"]
+    # .env 파일 읽기
+    load_dotenv()
+    
     return {
-        "X-Naver-Client-Id": n["client_id"],
-        "X-Naver-Client-Secret": n["client_secret"],
+        # 주의: 왼쪽(헤더 이름)이 반드시 X-NCP-APIGW... 여야 합니다!
+        "X-NCP-APIGW-API-KEY-ID": os.getenv("NAVER_CLIENT_ID"),
+        "X-NCP-APIGW-API-KEY": os.getenv("NAVER_CLIENT_SECRET"),
         "Content-Type": "application/json",
     }
 
