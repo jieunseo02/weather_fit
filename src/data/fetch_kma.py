@@ -84,12 +84,9 @@ def fetch_temperature_chunk(tmfc1: str, tmfc2: str) -> pd.DataFrame:
 # 3. [기상청 API 2] 중기 육상예보 수집 함수 (서울/경기 광역)
 # ==============================================================================
 def fetch_land_chunk(tmfc1: str, tmfc2: str) -> pd.DataFrame:
-    """
-    [역할] 서울/경기(11B00000) 지역의 날씨 상태(맑음/흐림 등)와 강수확률(0~100%)을 가져옵니다.
-    """
     url = "https://apihub.kma.go.kr/api/typ01/url/fct_afs_wl.php"
     params = {
-        "reg": "11B00000",     # 서울·인천·경기도 광역 구역 코드
+        "reg": "11B00000",    # 서울·인천·경기도 광역 구역 코드
         "tmfc1": tmfc1,
         "tmfc2": tmfc2,
         "disp": "1",
@@ -108,20 +105,22 @@ def fetch_land_chunk(tmfc1: str, tmfc2: str) -> pd.DataFrame:
             
         df = pd.read_csv(io.StringIO('\n'.join(lines)), sep=',', header=None, on_bad_lines='skip')
         
-        # 육상예보 규격에 맞게 열 추출:
-        # [열 1] tm_fc: 발표시각
-        # [열 2] tm_ef: 발효시각
-        # [열 6] weather_desc: 날씨 코드 (WB01, WB03 등)
-        # [열 7] rn_st: 강수확률 (%)
+        # 데이터프레임의 컬럼 개수에 맞춰 안전하게 추출 (인덱스 에러 방지)
+        # 보통 육상예보에서 날씨 코드는 6번째, 강수확률은 7번째 내외에 위치합니다.
         if df.shape[1] >= 8:
             df = df.iloc[:, [1, 2, 6, 7]]
-        else:
+            df.columns = ['tm_fc', 'tm_ef', 'weather_desc', 'rn_st']
+        elif df.shape[1] >= 7:
             df = df.iloc[:, [1, 2, 6, 6]]
+            df.columns = ['tm_fc', 'tm_ef', 'weather_desc', 'rn_st']
+            df['rn_st'] = 0
+        else:
+            return pd.DataFrame()
             
-        df.columns = ['tm_fc', 'tm_ef', 'weather_desc', 'rn_st']
-        
-        # 'WB01' -> '맑음', 'WB03' -> '구름많음' 등 한글로 자동 변환
+        # 데이터 타입 정제
+        df['rn_st'] = pd.to_numeric(df['rn_st'], errors='coerce').fillna(0)
         df['weather_desc'] = df['weather_desc'].astype(str).str.strip().map(lambda x: WEATHER_CODE_MAP.get(x, x))
+        
         return df
         
     except Exception as e:
@@ -133,15 +132,10 @@ def fetch_land_chunk(tmfc1: str, tmfc2: str) -> pd.DataFrame:
 # 4. [기상청 API 3] 기상특보 수집 함수 (서울 지역)
 # ==============================================================================
 def fetch_warnings(start_ymd: str, end_ymd: str) -> pd.DataFrame:
-    """
-    [역할] 한파(C), 폭염(H), 호우(R), 대설(S) 등 기상청 특보 발효 이력을 가져옵니다.
-    - start_ymd: 시작 연월일 (예: '20230101')
-    - end_ymd: 종료 연월일 (예: '20261231')
-    """
     url = "https://apihub.kma.go.kr/api/typ01/url/wrn_met_data.php"
     params = {
-        "reg": "11B00000",     # 서울·경기 구역
-        "wrn": "A",            # A: 모든 종류의 특보를 전부 조회
+        "reg": "11B00000",    # 서울·경기 구역
+        "wrn": "A",           # 모든 특보 조회
         "tmfc1": f"{start_ymd}0000",
         "tmfc2": f"{end_ymd}2359",
         "disp": "1",
@@ -151,19 +145,23 @@ def fetch_warnings(start_ymd: str, end_ymd: str) -> pd.DataFrame:
     
     try:
         res = requests.get(url, params=params, timeout=20)
+        if res.status_code != 200 or "#START7777" not in res.text:
+            return pd.DataFrame()
+            
         lines = [line.strip() for line in res.text.split('\n') if not line.startswith('#') and line.strip()]
         if not lines:
             return pd.DataFrame()
             
         df = pd.read_csv(io.StringIO('\n'.join(lines)), sep=',', header=None, on_bad_lines='skip')
         
-        # [열 2] tm_ef: 특보 시작 일시
-        # [열 3] tm_ed: 특보 종료 일시
-        # [열 10] wrn_type: 특보 종류 (C: 한파, H: 폭염, R: 호우 등)
-        # [열 11] wrn_level: 특보 수준 (주의보, 경보 등)
-        df = df.iloc[:, [2, 3, 10, 11]]
-        df.columns = ['tm_ef', 'tm_ed', 'wrn_type', 'wrn_level']
-        return df
+        # 특보 API 응답 규격 확인 후 안전 추출 (컬럼 수가 충분한지 체크)
+        if df.shape[1] >= 12:
+            df = df.iloc[:, [2, 3, 10, 11]]
+            df.columns = ['tm_ef', 'tm_ed', 'wrn_type', 'wrn_level']
+            return df
+        else:
+            # 만약 형식이 다를 경우를 대비한 유연한 처리
+            return pd.DataFrame()
         
     except Exception as e:
         print(f"❌ 특보 데이터 수집 중 오류: {e}")
@@ -261,18 +259,14 @@ def run_backfill(start_year=2023, end_year=2026):
     # --------------------------------------------------------------------------
     print("🧠 [Step 3] 패션 수요 예측용 파생변수 계산 중...")
     
-    # 1. 일교차: 최고기온 - 최저기온 (10도 이상 벌어지면 자켓/가디건 등 간절기 옷 수요 발생)
     daily['temp_diff'] = daily['ta_max'] - daily['ta_min']
-    
-    # 2. 전일 대비 기온 변화: 오늘 최고기온 - 어제 최고기온 (갑자기 추워질 때 소비자가 옷을 삼)
     daily['temp_delta_prev'] = daily['ta_max'] - daily['ta_max'].shift(1)
     
-    # 3. 비 예보 여부 (0 또는 1): 강수확률이 60% 이상이거나 날씨 설명에 비/눈/소나기가 있으면 1
+    # ⚠️ 이 부분들이 함수 안으로 들여쓰기 되어 있어야 합니다!
     is_rain_desc = daily['weather_desc'].str.contains('비|소나기|눈', na=False)
-    is_rain_prob = daily['rn_st'] >= 60
+    is_rain_prob = daily['rn_st'] >= 50
     daily['has_rain'] = (is_rain_desc | is_rain_prob).astype(int)
     
-    # 4. 기상특보 매핑: 특보 발효 기간(시작일~종료일) 사이에 해당하는 날짜에 라벨링
     daily['is_warning'] = 0
     daily['warning_type'] = 'NONE'
     
@@ -280,12 +274,12 @@ def run_backfill(start_year=2023, end_year=2026):
         for _, row in df_wrn.iterrows():
             st = pd.to_datetime(str(row['tm_ef'])[:8], format='%Y%m%d', errors='coerce')
             ed = pd.to_datetime(str(row['tm_ed'])[:8], format='%Y%m%d', errors='coerce') if pd.notnull(row['tm_ed']) else st
-            if pd.notnull(st) and pd.notnull(ed):
-                # 특보 기간에 해당하는 날짜 행을 찾아서 마킹
+            if pd.notnull(st):
+                if pd.isnull(ed):
+                    ed = st
                 mask = (daily['date'] >= st) & (daily['date'] <= ed)
                 daily.loc[mask, 'is_warning'] = 1
                 daily.loc[mask, 'warning_type'] = str(row['wrn_type'])
-                
 # --------------------------------------------------------------------------
     # [Step 4] 최종 정제 데이터 저장 (CSV 포맷으로 변경!)
     # --------------------------------------------------------------------------
