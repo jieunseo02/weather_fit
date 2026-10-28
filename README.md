@@ -1,6 +1,8 @@
 # weather_fit
 
 # 날씨 × 패션 트렌드 분석
+[Streamlit App]
+**대시보드 바로 보기: https://weatherfit-lfgkdhwa8r5h8euwweslu5.streamlit.app/**
 
 > 서울의 기상 데이터와 패션 카테고리 검색·콘텐츠 트렌드를 결합해, **(1) 기상 이벤트별 의류 카테고리 수요 분석 리포트**와 **(2) "내일 날씨 → 추천 카테고리" 분류 모델**을 제작하는 데이터 분석 프로젝트.
 
